@@ -24,14 +24,13 @@
       switch (scelta){
         case 1:
           imposta_gioco();
-          //printf("lezzo\n");
           break;
         case 2:
           //gioca();
           printf("penzola\n");
         break;
         case 3:
-          //termina_gioco();
+          termina_gioco();
           printf("sgocciola\n");
         break;
       }
