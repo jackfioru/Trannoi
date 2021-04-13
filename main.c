@@ -5,13 +5,10 @@
   int main(void){
     int scelta = 0;
     int contatore = 0;
-    printf("\t\tTRANNOI\n");
 //////////////////// MENU //////////////////////
     do{
-      printf("\t\tMenu:\n");
-      printf("1)Imposta Gioco\t\t");
-      printf("2)Gioca\t\t");
-      printf("3)Termina Gioco\n");
+      system("clear");
+      printf("\t\tTrannoi\n\n\t\tMenù\n\n1) Imposta gioco\n\n2) GIoca\n\n3) Termina gioco\n");
       scanf("%d",&scelta);
       //printf("valore : %d\n", scelta);
       if(scelta != 1 && scelta != 2 && scelta != 3){
@@ -26,8 +23,7 @@
           imposta_gioco();
           break;
         case 2:
-          //gioca();
-          printf("penzola\n");
+          gioca();
         break;
         case 3:
           termina_gioco();
