@@ -1,4 +1,4 @@
-#include <stdio.h>
+ #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include "gamelib.h"
@@ -20,7 +20,7 @@ static void creazione_giocatori();
 static void imposta_impostori();
 static void imposta_quest();
 static void crea_stanza_inizio();
-static void assegna_stato_stanza(struct Stanza *new_stanza);
+static void assegna_stato_stanza(struct Stanza *nuova_stanza);
 static void stampa_giocatori();
 static void turno(int id);
 static void avanza(int id);
@@ -44,7 +44,7 @@ void imposta_gioco()
 
 
   int scelta = 0;   // varibile per lettura
-  system("clear");
+
   do
   {
     printf("\t\tTrannoi\n\n\t\tImpostazioni\n\n1) Imposta Giocatori\n\n2) Stampa Giocatori\n\n3) Indietro\n\n");
@@ -56,6 +56,7 @@ void imposta_gioco()
         while (getchar() != '\n');
       }
   } while ((scelta != 1 && scelta != 2 && scelta != 3)); // lettura input da tastiera
+  system("clear");
   switch (scelta)
     {
       case 1:
@@ -263,7 +264,7 @@ void crea_stanza_inizio()
 }
 
 
-void assegna_stato_stanza(struct Stanza *new_stanza)
+void assegna_stato_stanza(struct Stanza *nuova_stanza)
 {
   /*In che stanza mi trovo? Questa funzione assegna in maniera casuale
     la tipologia di stanza che andremo a creare
@@ -272,23 +273,23 @@ void assegna_stato_stanza(struct Stanza *new_stanza)
   int probabilita = rand()%100;
   if(probabilita <= 25)
   {
-    new_stanza -> tipo = botola;
+    nuova_stanza -> tipo = botola;
   }
   else
   {
     if(probabilita > 25 && probabilita <= 40)
     {
-      new_stanza -> tipo = quest_complicata;
+      nuova_stanza -> tipo = quest_complicata;
     }
     else
     {
       if(probabilita > 40 && probabilita <= 70)
       {
-        new_stanza -> tipo = quest_semplice;
+        nuova_stanza -> tipo = quest_semplice;
       }
       else
       {
-        new_stanza -> tipo = botola;
+        nuova_stanza -> tipo = botola;
       }
     }
   }
@@ -473,21 +474,43 @@ void avanza(int id)
   switch (scelta)
   {
     case 1:
-    /*
-      if()
+      if(giocatori[id].posizione->avanti == NULL)
       {
-        // se stanza null....
+        nuova_stanza = (struct Stanza*)malloc(sizeof(*nuova_stanza));
+        nuova_stanza -> stanza_precedente = giocatori[id].posizione;
+        nuova_stanza -> avanti = NULL;
+        nuova_stanza -> destra = NULL;
+        nuova_stanza -> sinistra = NULL;
+        nuova_stanza -> emergenza = false;
+        assegna_stato_stanza(nuova_stanza);
       }
-    */
       break;
     case 2:
-
+    if(giocatori[id].posizione->destra == NULL)
+    {
+      nuova_stanza = (struct Stanza*)malloc(sizeof(*nuova_stanza));
+      nuova_stanza -> stanza_precedente = giocatori[id].posizione;
+      nuova_stanza -> avanti = NULL;
+      nuova_stanza -> destra = NULL;
+      nuova_stanza -> sinistra = NULL;
+      nuova_stanza -> emergenza = false;
+      assegna_stato_stanza(nuova_stanza);
+    }
       break;
     case 3:
-
+    if(giocatori[id].posizione->sinistra == NULL)
+    {
+      nuova_stanza = (struct Stanza*)malloc(sizeof(*nuova_stanza));
+      nuova_stanza -> stanza_precedente = giocatori[id].posizione;
+      nuova_stanza -> avanti = NULL;
+      nuova_stanza -> destra = NULL;
+      nuova_stanza -> sinistra = NULL;
+      nuova_stanza -> emergenza = false;
+      assegna_stato_stanza(nuova_stanza);
+    }
       break;
     case 4:
-
+    // non si muove
       break;
   }
 }
