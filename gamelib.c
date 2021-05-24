@@ -1,4 +1,4 @@
- #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include "gamelib.h"
@@ -16,6 +16,7 @@ static struct Giocatore * giocatori = NULL;
 
 static struct Stanza * stanza_inizio = NULL;
 static struct Stanza * lista_stanze = NULL;
+static struct Stanza * nuova_stanza = NULL;
 static void creazione_giocatori();
 static void imposta_impostori();
 static void imposta_quest();
@@ -24,11 +25,12 @@ static void assegna_stato_stanza(struct Stanza *nuova_stanza);
 static void stampa_giocatori();
 static void turno(int id);
 static void avanza(int id);
-//static void esegui_quest();
-//static void chiamata_emergenza();
+static void crea_stanza(int id);
+static void esegui_quest(int id);
+static void chiamata_emergenza(int id);
 //static void uccidi_astonauta();
-//static void usa_botola();
-//static void sabotaggio();
+static void usa_botola();
+static void sabotaggio(int id);
 const char* getNomeGiocatore(enum Nome_giocatore nome);
 
 
@@ -51,12 +53,12 @@ void imposta_gioco()
     scanf("%d", & scelta);
       if (scelta != 1 && scelta != 2 && scelta != 3)
       {
-        system("clear");
+        //system("clear");
         printf("\nNumero non valido. riprova\n");
         while (getchar() != '\n');
       }
   } while ((scelta != 1 && scelta != 2 && scelta != 3)); // lettura input da tastiera
-  system("clear");
+  //system("clear");
   switch (scelta)
     {
       case 1:
@@ -95,7 +97,7 @@ void creazione_giocatori()
     scanf("%d", & n_giocatori);
       if ((n_giocatori < 4 || n_giocatori > 10))
       {
-        system("clear");
+        //system("clear");
         printf("\nNumero non valido. riprova\n");
         while (getchar() != '\n');
       }
@@ -231,12 +233,12 @@ void imposta_quest()
       scanf("%hu", & quest_da_finire);
       if ((quest_da_finire <= n_giocatori))
       {
-        system("clear");
+        //system("clear");
         printf("\n\nNumero inserito minore del numero dei giocatori\n\n");
         while (getchar() != '\n');
       }
     } while (quest_da_finire <= n_giocatori);
-    system("clear");
+    //system("clear");
 
     if(quest_da_finire != 0)
       printf("\nQuest impostate\n\n");
@@ -293,7 +295,6 @@ void assegna_stato_stanza(struct Stanza *nuova_stanza)
       }
     }
   }
-  printf("Si ok, ma che tipo di stanza?\n");
 }
 
 void stampa_giocatori()
@@ -364,14 +365,14 @@ void gioca()
 {
   if(setted == 0) // controllo se il gioco e' stato impostato
   {
-    system("clear");
+    //system("clear");
     printf("\nPrima di poter giocare è necessaro impostare il gioco\n\n");
     while(getchar() != '\n');
     imposta_gioco();
   }
   else
   {
-    system("clear");
+    //system("clear");
     printf("Un gruppo n di astronauti si trova in viaggio sull’astronave Skelt,\ne il loro obiettivo è riuscire a completare tutte le attività previste (quest) per il mantenimento della nave,\narrivando così a destinazione.\nTra di loro si celano però anche degli impostori, \nil cui scopo è eliminare di nascosto gli astronautisenza farsi scoprire da essi.\nRiusciranno ad arrivare a destinazione prima di essere decimati?\nTrannoi è liberamente ispirato ad un gioco esistente.\n");
 
     for(int i = 0; i <n_giocatori; i++)
@@ -385,8 +386,9 @@ void gioca()
 
 void turno(int id)
 {
-  system("clear");
+  //system("clear");
   int scelta = 0;
+
   if(giocatori[id].stato == astronauta)
   {
     printf("\e[0;32m");
@@ -406,10 +408,14 @@ void turno(int id)
         avanza(id);
         break;
       case 2:
-        //esegui_quest();
+        esegui_quest(id);
         break;
       case 3:
-        //chiamata_emergenza();
+        for(int i = 0; i < n_giocatori;i++)
+        {
+          if(giocatori[i].stato == assassinato && giocatori[i].posizione == giocatori[id].posizione)
+            chiamata_emergenza(id);
+        }
         break;
     }
   }
@@ -438,31 +444,38 @@ void turno(int id)
           //esegui_quest();
           break;
         case 3:
-          //chiamata_emergenza();
+          for(int i = 0; i < n_giocatori;i++)
+          {
+            if(giocatori[i].stato == assassinato && giocatori[i].posizione == giocatori[id].posizione)
+              chiamata_emergenza(id);
+          }
           break;
         case 4:
-            //uccidi_astonauta();
+            //uccidi_astonauta(id);
           break;
         case 5:
-            //usa_botola();
+          if(giocatori[id].posizione->tipo == botola)
+            usa_botola(id);
+          else
+            printf("Non ci sono botole nella stanza..."\n);
           break;
         case 6:
-            //sabotaggio();
+            sabotaggio(id);
           break;
       }
     }
   }
-
+  printf("posizione giocatore: %p\n", giocatori[id].posizione);
 }
 
 void avanza(int id)
 {
   int scelta = 0;
-  system("clear");
+  //system("clear");
   do
   {
     printf("\t\tTurno %s\n\n1) Avanti\n\n2) Destra\n\n3) Sinistra\n\n4) Fermati\n\n", getNomeGiocatore(giocatori[id].nome));
-    scanf("%d", & scelta);
+    scanf("%d", &scelta);
       if (scelta < 1 && scelta > 4)
       {
 
@@ -476,43 +489,148 @@ void avanza(int id)
     case 1:
       if(giocatori[id].posizione->avanti == NULL)
       {
-        nuova_stanza = (struct Stanza*)malloc(sizeof(*nuova_stanza));
-        nuova_stanza -> stanza_precedente = giocatori[id].posizione;
-        nuova_stanza -> avanti = NULL;
-        nuova_stanza -> destra = NULL;
-        nuova_stanza -> sinistra = NULL;
-        nuova_stanza -> emergenza = false;
-        assegna_stato_stanza(nuova_stanza);
+        crea_stanza(id);
+        giocatori[id].posizione->avanti = nuova_stanza;
+        giocatori[id].posizione = nuova_stanza;
+      }
+      else
+      {
+        giocatori[id].posizione = giocatori[id].posizione->avanti;
       }
       break;
     case 2:
-    if(giocatori[id].posizione->destra == NULL)
-    {
-      nuova_stanza = (struct Stanza*)malloc(sizeof(*nuova_stanza));
-      nuova_stanza -> stanza_precedente = giocatori[id].posizione;
-      nuova_stanza -> avanti = NULL;
-      nuova_stanza -> destra = NULL;
-      nuova_stanza -> sinistra = NULL;
-      nuova_stanza -> emergenza = false;
-      assegna_stato_stanza(nuova_stanza);
-    }
+      if(giocatori[id].posizione->destra == NULL)
+      {
+        crea_stanza(id);
+        giocatori[id].posizione->destra = nuova_stanza;
+        giocatori[id].posizione = nuova_stanza;
+      }
+      else
+      {
+        giocatori[id].posizione = giocatori[id].posizione->destra;
+      }
       break;
     case 3:
-    if(giocatori[id].posizione->sinistra == NULL)
-    {
-      nuova_stanza = (struct Stanza*)malloc(sizeof(*nuova_stanza));
-      nuova_stanza -> stanza_precedente = giocatori[id].posizione;
-      nuova_stanza -> avanti = NULL;
-      nuova_stanza -> destra = NULL;
-      nuova_stanza -> sinistra = NULL;
-      nuova_stanza -> emergenza = false;
-      assegna_stato_stanza(nuova_stanza);
-    }
+      if(giocatori[id].posizione->sinistra == NULL)
+      {
+        crea_stanza(id);
+        giocatori[id].posizione->sinistra = nuova_stanza;
+        giocatori[id].posizione = nuova_stanza;
+      }
+      else
+      {
+        giocatori[id].posizione = giocatori[id].posizione->sinistra;
+      }
       break;
     case 4:
     // non si muove
       break;
   }
+}
+
+void crea_stanza(int id)
+{
+  nuova_stanza = (struct Stanza*)malloc(sizeof(*nuova_stanza));
+  nuova_stanza -> avanti = NULL;
+  nuova_stanza -> destra = NULL;
+  nuova_stanza -> sinistra = NULL;
+  nuova_stanza -> stanza_precedente = giocatori[id].posizione;
+  nuova_stanza -> emergenza = false;
+  assegna_stato_stanza(nuova_stanza);
+  printf("stanza appena creata %p\n",nuova_stanza);
+  lista_stanze = stanza_inizio;
+
+  while(lista_stanze->cronologia != NULL)
+  {
+    lista_stanze = lista_stanze->cronologia;
+  }
+  lista_stanze->cronologia = nuova_stanza;
+  lista_stanze->cronologia->cronologia = NULL;
+
+}
+
+void esegui_quest(int id)
+{
+  printf("%d\n", giocatori[id].posizione->tipo);
+
+  switch (giocatori[id].posizione->tipo) {
+    case quest_semplice:
+      quest_da_finire--;
+
+      giocatori[id].posizione->tipo = vuota;
+      printf("Quest semplice eseguita con successo\n");
+      break;
+    case quest_complicata:
+      if(quest_da_finire == 1)
+      {
+        quest_da_finire--;
+      }
+      else
+      {
+        quest_da_finire -= 2;
+      }
+
+      giocatori[id].posizione->tipo = vuota;
+      printf("Quest complicata eseguita con successo\n");
+      break;
+    default:
+      printf("Non ci sono quest da eseguire\n");
+  }
+  printf("%hu\n", quest_da_finire);
+  while(getchar()!='\n'){}
+
+  if(quest_da_finire == 0)
+  {
+    // vittoria da parte degli astronauti
+  }
+}
+
+void chiamata_emergenza(int id)
+{
+  int num_a = 0, num_i = 0;
+  //int p_in_room = 0;
+
+  if(giocatori[id].posizione->emergenza == true)
+  {
+    printf("chiamata di emergenza gia effettuata\n");
+    return;
+  }
+
+  for(int i = 0;i<n_giocatori;i++)
+  {
+    giocatori[id].posizione->emergenza = true;
+
+    if(giocatori[i].stato == astronauta && giocatori[i].posizione == giocatori[id].posizione)
+    {
+      num_a++;
+    }
+    if(giocatori[i].stato == impostore && giocatori[i].posizione == giocatori[id].posizione)
+    {
+      num_i++;
+    }
+  }
+}
+void usa_botola()
+{
+  stanza_inizio 
+}
+void sabotaggio(int id)
+{
+  printf("%d\n", giocatori[id].posizione->tipo);
+
+  switch (giocatori[id].posizione->tipo) {
+    case quest_semplice:
+      giocatori[id].posizione->tipo = vuota;
+      printf("Quest sabotata\n");
+      break;
+    case quest_complicata:
+      giocatori[id].posizione->tipo = vuota;
+      printf("Quest sabotata\n");
+      break;
+    default:
+      printf("Non ci sono quest da sabotare\n");
+  }
+  while(getchar()!='\n'){}
 }
 
 const char* getNomeGiocatore(enum Nome_giocatore nome)
@@ -529,6 +647,7 @@ const char* getNomeGiocatore(enum Nome_giocatore nome)
       case viola: return "viola"; break;
       case celeste: return "celeste"; break;
       case grigio: return "grigio"; break;
+      default: return "errore";
    }
 
 }

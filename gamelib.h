@@ -12,6 +12,7 @@ enum Nome_giocatore {rosso,blu,verde,giallo,arancione,nero,rosa,viola,celeste,gr
     struct Stanza *destra;
     struct Stanza *sinistra;
     struct Stanza *stanza_precedente;
+    struct Stanza *cronologia;
     enum Tipo_stanza tipo;
     enum emergenza_chiamata emergenza;
   };
